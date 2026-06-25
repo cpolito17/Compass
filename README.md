@@ -2,7 +2,7 @@
 
 A clean, fast, ad-free, paywall-free personal finance planner. No accounts. No paywalls. No bloat. Just three tools that work together to help you think clearly about money.
 
-Live at **[charliepolito.com/trajectory](https://charliepolito.com/trajectory)** · also reachable at [charliepolito.com/compass](https://charliepolito.com/compass)
+Live at **[charliepolito.com/compass](https://charliepolito.com/compass)**
 
 -----
 
