@@ -1,0 +1,19 @@
+{
+  "vintage": 2026,
+  "source": "Means: BLS Consumer Expenditure Survey 2024 (released Dec 2025; avg annual expenditures $78,535 vs $104,207 pre-tax income). Sigmas: calibrated estimates (log-scale SD), not BLS-published; overridable. Retirement/pension contributions are excluded (modeled separately as saving).",
+  "note": "Each category is modeled lognormal with mean = meanAnnual and log-scale SD = sigma, so mu = ln(mean) - sigma^2/2. Percentiles are among all US households. colCategory maps to a cost-of-living.json category index (null = not COL-scaled).",
+  "categories": [
+    { "key": "shelter", "displayName": "Rent / Shelter", "meanAnnual": 15900, "sigma": 0.50, "parentGroup": "Spending", "colSensitive": true, "colCategory": "housing" },
+    { "key": "groceries", "displayName": "Groceries", "meanAnnual": 6000, "sigma": 0.45, "parentGroup": "Spending", "colSensitive": true, "colCategory": "groceries" },
+    { "key": "utilities", "displayName": "Utilities", "meanAnnual": 4750, "sigma": 0.40, "parentGroup": "Spending", "colSensitive": true, "colCategory": "utilities" },
+    { "key": "transport", "displayName": "Auto / Transport", "meanAnnual": 13350, "sigma": 0.60, "parentGroup": "Spending", "colSensitive": true, "colCategory": "transportation" },
+    { "key": "dining", "displayName": "Dining", "meanAnnual": 4100, "sigma": 0.80, "parentGroup": "Spending", "colSensitive": true, "colCategory": "groceries" },
+    { "key": "travel", "displayName": "Travel", "meanAnnual": 2450, "sigma": 1.00, "parentGroup": "Spending", "colSensitive": false, "colCategory": null },
+    { "key": "entertainment", "displayName": "Entertainment", "meanAnnual": 1800, "sigma": 0.85, "parentGroup": "Spending", "colSensitive": true, "colCategory": "misc" },
+    { "key": "healthcare", "displayName": "Healthcare", "meanAnnual": 6200, "sigma": 0.70, "parentGroup": "Spending", "colSensitive": true, "colCategory": "healthcare" },
+    { "key": "insurance", "displayName": "Insurance", "meanAnnual": 2400, "sigma": 0.50, "parentGroup": "Spending", "colSensitive": true, "colCategory": "misc" },
+    { "key": "apparel", "displayName": "Apparel", "meanAnnual": 1960, "sigma": 0.70, "parentGroup": "Spending", "colSensitive": false, "colCategory": null },
+    { "key": "hobbies", "displayName": "Hobbies / Shopping", "meanAnnual": 3000, "sigma": 0.80, "parentGroup": "Spending", "colSensitive": true, "colCategory": "misc" },
+    { "key": "misc", "displayName": "Misc", "meanAnnual": 2500, "sigma": 0.60, "parentGroup": "Spending", "colSensitive": true, "colCategory": "misc" }
+  ]
+}

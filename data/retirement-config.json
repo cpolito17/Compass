@@ -1,0 +1,23 @@
+{
+  "vintage": 2026,
+  "source": "IRS Notice 2025-67 (retirement plan limits); SSA 2026 fact sheet (wage base, COLA, bend points, benefit levels).",
+  "k401": {
+    "employeeLimit": 24500,
+    "annualAdditionsLimit": 72000,
+    "iraLimit": 7500
+  },
+  "socialSecurity": {
+    "fullRetirementAge": 67,
+    "wageBase": 184500,
+    "maxMonthlyBenefitAtFRA": 4150,
+    "avgMonthlyBenefit": 2081,
+    "cola": 0.025,
+    "piaBendPoints": { "first": 1284, "second": 7744 },
+    "piaRates": [0.9, 0.32, 0.15],
+    "claimingAdjustment": {
+      "62": 0.70, "63": 0.75, "64": 0.80, "65": 0.8667, "66": 0.9333,
+      "67": 1.00, "68": 1.08, "69": 1.16, "70": 1.24
+    },
+    "note": "Claiming adjustment: ~5/9% per month reduction before FRA (to -30% at 62), ~8%/yr delayed credits after FRA (to +24% at 70). Bend points are SSA 2026 PIA formula dollar amounts."
+  }
+}

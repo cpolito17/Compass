@@ -1,0 +1,20 @@
+{
+  "vintage": 2026,
+  "source": "App defaults per build brief §6. All rates are nominal.",
+  "constants": {
+    "marketReturn": 0.07,
+    "inflation": 0.025,
+    "salaryGrowth": 0.035,
+    "homeAppreciation": 0.035,
+    "capitalGainsRate": 0.15,
+    "ssClaimAge": 67
+  },
+  "labels": {
+    "marketReturn": "Market return (nominal)",
+    "inflation": "Inflation",
+    "salaryGrowth": "Salary growth (nominal)",
+    "homeAppreciation": "Home appreciation (nominal)",
+    "capitalGainsRate": "Capital gains rate",
+    "ssClaimAge": "Social Security claiming age"
+  }
+}

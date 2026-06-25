@@ -1,0 +1,351 @@
+{
+  "vintage": 2026,
+  "source": "Tax Foundation, State Individual Income Tax Rates and Brackets (2026); state revenue departments. Brackets for progressive states use the latest published inflation-indexed values.",
+  "states": {
+    "TX": { "name": "Texas", "type": "none" },
+    "FL": { "name": "Florida", "type": "none" },
+    "WA": { "name": "Washington", "type": "none" },
+    "NV": { "name": "Nevada", "type": "none" },
+    "TN": { "name": "Tennessee", "type": "none" },
+    "AZ": {
+      "name": "Arizona", "type": "flat", "rate": 0.025,
+      "standardDeduction": { "single": 16100, "mfj": 32200, "hoh": 24150 }
+    },
+    "PA": {
+      "name": "Pennsylvania", "type": "flat", "rate": 0.0307,
+      "standardDeduction": { "single": 0, "mfj": 0, "hoh": 0 }
+    },
+    "IL": {
+      "name": "Illinois", "type": "flat", "rate": 0.0495,
+      "standardDeduction": { "single": 2850, "mfj": 5700, "hoh": 2850 },
+      "note": "Illinois has no standard deduction; the personal exemption allowance is modeled here."
+    },
+    "IN": {
+      "name": "Indiana", "type": "flat", "rate": 0.0295,
+      "standardDeduction": { "single": 1000, "mfj": 2000, "hoh": 1000 },
+      "note": "Rate per scheduled reduction (3.00% 2025 -> 2.95% 2026). Personal exemption modeled as deduction."
+    },
+    "MI": {
+      "name": "Michigan", "type": "flat", "rate": 0.0425,
+      "standardDeduction": { "single": 5800, "mfj": 11600, "hoh": 5800 },
+      "note": "Personal exemption modeled as deduction."
+    },
+    "NC": {
+      "name": "North Carolina", "type": "flat", "rate": 0.0399,
+      "standardDeduction": { "single": 12750, "mfj": 25500, "hoh": 19125 }
+    },
+    "CO": {
+      "name": "Colorado", "type": "flat", "rate": 0.044,
+      "standardDeduction": { "single": 16100, "mfj": 32200, "hoh": 24150 },
+      "note": "Colorado taxes federal taxable income, so the federal standard deduction applies."
+    },
+    "KY": {
+      "name": "Kentucky", "type": "flat", "rate": 0.035,
+      "standardDeduction": { "single": 3270, "mfj": 6540, "hoh": 3270 },
+      "note": "Rate cut to 3.5% effective 2026 (2025 HB 1)."
+    },
+    "GA": {
+      "name": "Georgia", "type": "flat", "rate": 0.0519,
+      "standardDeduction": { "single": 12000, "mfj": 24000, "hoh": 12000 },
+      "note": "Flat rate under HB 1437 reduction schedule."
+    },
+    "MA": {
+      "name": "Massachusetts", "type": "progressive",
+      "standardDeduction": { "single": 4400, "mfj": 8800, "hoh": 6800 },
+      "note": "5% flat plus 4% surtax on income over ~$1.08M; personal exemption modeled as deduction.",
+      "brackets": {
+        "single": [ { "upTo": 1083150, "rate": 0.05 }, { "upTo": null, "rate": 0.09 } ],
+        "mfj": [ { "upTo": 1083150, "rate": 0.05 }, { "upTo": null, "rate": 0.09 } ],
+        "hoh": [ { "upTo": 1083150, "rate": 0.05 }, { "upTo": null, "rate": 0.09 } ]
+      }
+    },
+    "OH": {
+      "name": "Ohio", "type": "progressive",
+      "standardDeduction": { "single": 0, "mfj": 0, "hoh": 0 },
+      "note": "Flat 2.75% on income above the exempt threshold (2026).",
+      "brackets": {
+        "single": [ { "upTo": 26050, "rate": 0 }, { "upTo": null, "rate": 0.0275 } ],
+        "mfj": [ { "upTo": 26050, "rate": 0 }, { "upTo": null, "rate": 0.0275 } ],
+        "hoh": [ { "upTo": 26050, "rate": 0 }, { "upTo": null, "rate": 0.0275 } ]
+      }
+    },
+    "OK": {
+      "name": "Oklahoma", "type": "progressive",
+      "standardDeduction": { "single": 6350, "mfj": 12700, "hoh": 9350 },
+      "brackets": {
+        "single": [
+          { "upTo": 1000, "rate": 0.0025 }, { "upTo": 2500, "rate": 0.0075 },
+          { "upTo": 3750, "rate": 0.0175 }, { "upTo": 4900, "rate": 0.0275 },
+          { "upTo": 7200, "rate": 0.0375 }, { "upTo": null, "rate": 0.0475 }
+        ],
+        "mfj": [
+          { "upTo": 2000, "rate": 0.0025 }, { "upTo": 5000, "rate": 0.0075 },
+          { "upTo": 7500, "rate": 0.0175 }, { "upTo": 9800, "rate": 0.0275 },
+          { "upTo": 12200, "rate": 0.0375 }, { "upTo": null, "rate": 0.0475 }
+        ],
+        "hoh": [
+          { "upTo": 2000, "rate": 0.0025 }, { "upTo": 5000, "rate": 0.0075 },
+          { "upTo": 7500, "rate": 0.0175 }, { "upTo": 9800, "rate": 0.0275 },
+          { "upTo": 12200, "rate": 0.0375 }, { "upTo": null, "rate": 0.0475 }
+        ]
+      }
+    },
+    "DC": {
+      "name": "District of Columbia", "type": "progressive",
+      "standardDeduction": { "single": 16100, "mfj": 32200, "hoh": 24150 },
+      "brackets": {
+        "single": [
+          { "upTo": 10000, "rate": 0.04 }, { "upTo": 40000, "rate": 0.06 },
+          { "upTo": 60000, "rate": 0.065 }, { "upTo": 250000, "rate": 0.085 },
+          { "upTo": 500000, "rate": 0.0925 }, { "upTo": 1000000, "rate": 0.0975 },
+          { "upTo": null, "rate": 0.1075 }
+        ],
+        "mfj": [
+          { "upTo": 10000, "rate": 0.04 }, { "upTo": 40000, "rate": 0.06 },
+          { "upTo": 60000, "rate": 0.065 }, { "upTo": 250000, "rate": 0.085 },
+          { "upTo": 500000, "rate": 0.0925 }, { "upTo": 1000000, "rate": 0.0975 },
+          { "upTo": null, "rate": 0.1075 }
+        ],
+        "hoh": [
+          { "upTo": 10000, "rate": 0.04 }, { "upTo": 40000, "rate": 0.06 },
+          { "upTo": 60000, "rate": 0.065 }, { "upTo": 250000, "rate": 0.085 },
+          { "upTo": 500000, "rate": 0.0925 }, { "upTo": 1000000, "rate": 0.0975 },
+          { "upTo": null, "rate": 0.1075 }
+        ]
+      }
+    },
+    "CA": {
+      "name": "California", "type": "progressive",
+      "standardDeduction": { "single": 5540, "mfj": 11080, "hoh": 11080 },
+      "note": "Includes the 1% mental-health surcharge on income over $1M (top band).",
+      "brackets": {
+        "single": [
+          { "upTo": 10756, "rate": 0.01 }, { "upTo": 25499, "rate": 0.02 },
+          { "upTo": 40245, "rate": 0.04 }, { "upTo": 55866, "rate": 0.06 },
+          { "upTo": 70606, "rate": 0.08 }, { "upTo": 360659, "rate": 0.093 },
+          { "upTo": 432787, "rate": 0.103 }, { "upTo": 721314, "rate": 0.113 },
+          { "upTo": 1000000, "rate": 0.123 }, { "upTo": null, "rate": 0.133 }
+        ],
+        "mfj": [
+          { "upTo": 21512, "rate": 0.01 }, { "upTo": 50998, "rate": 0.02 },
+          { "upTo": 80490, "rate": 0.04 }, { "upTo": 111732, "rate": 0.06 },
+          { "upTo": 141212, "rate": 0.08 }, { "upTo": 721318, "rate": 0.093 },
+          { "upTo": 865574, "rate": 0.103 }, { "upTo": 1000000, "rate": 0.113 },
+          { "upTo": 1442628, "rate": 0.123 }, { "upTo": null, "rate": 0.133 }
+        ],
+        "hoh": [
+          { "upTo": 21527, "rate": 0.01 }, { "upTo": 51000, "rate": 0.02 },
+          { "upTo": 65744, "rate": 0.04 }, { "upTo": 81364, "rate": 0.06 },
+          { "upTo": 96107, "rate": 0.08 }, { "upTo": 490493, "rate": 0.093 },
+          { "upTo": 588593, "rate": 0.103 }, { "upTo": 980987, "rate": 0.113 },
+          { "upTo": 1000000, "rate": 0.123 }, { "upTo": null, "rate": 0.133 }
+        ]
+      }
+    },
+    "NY": {
+      "name": "New York", "type": "progressive",
+      "standardDeduction": { "single": 8000, "mfj": 16050, "hoh": 11200 },
+      "brackets": {
+        "single": [
+          { "upTo": 8500, "rate": 0.04 }, { "upTo": 11700, "rate": 0.045 },
+          { "upTo": 13900, "rate": 0.0525 }, { "upTo": 80650, "rate": 0.055 },
+          { "upTo": 215400, "rate": 0.06 }, { "upTo": 1077550, "rate": 0.0685 },
+          { "upTo": 5000000, "rate": 0.0965 }, { "upTo": 25000000, "rate": 0.103 },
+          { "upTo": null, "rate": 0.109 }
+        ],
+        "mfj": [
+          { "upTo": 17150, "rate": 0.04 }, { "upTo": 23600, "rate": 0.045 },
+          { "upTo": 27900, "rate": 0.0525 }, { "upTo": 161550, "rate": 0.055 },
+          { "upTo": 323200, "rate": 0.06 }, { "upTo": 2155350, "rate": 0.0685 },
+          { "upTo": 5000000, "rate": 0.0965 }, { "upTo": 25000000, "rate": 0.103 },
+          { "upTo": null, "rate": 0.109 }
+        ],
+        "hoh": [
+          { "upTo": 12800, "rate": 0.04 }, { "upTo": 17650, "rate": 0.045 },
+          { "upTo": 20900, "rate": 0.0525 }, { "upTo": 107650, "rate": 0.055 },
+          { "upTo": 269300, "rate": 0.06 }, { "upTo": 1616450, "rate": 0.0685 },
+          { "upTo": 5000000, "rate": 0.0965 }, { "upTo": 25000000, "rate": 0.103 },
+          { "upTo": null, "rate": 0.109 }
+        ]
+      }
+    },
+    "OR": {
+      "name": "Oregon", "type": "progressive",
+      "standardDeduction": { "single": 2835, "mfj": 5670, "hoh": 4565 },
+      "brackets": {
+        "single": [
+          { "upTo": 4400, "rate": 0.0475 }, { "upTo": 11050, "rate": 0.0675 },
+          { "upTo": 125000, "rate": 0.0875 }, { "upTo": null, "rate": 0.099 }
+        ],
+        "mfj": [
+          { "upTo": 8800, "rate": 0.0475 }, { "upTo": 22100, "rate": 0.0675 },
+          { "upTo": 250000, "rate": 0.0875 }, { "upTo": null, "rate": 0.099 }
+        ],
+        "hoh": [
+          { "upTo": 8800, "rate": 0.0475 }, { "upTo": 22100, "rate": 0.0675 },
+          { "upTo": 250000, "rate": 0.0875 }, { "upTo": null, "rate": 0.099 }
+        ]
+      }
+    },
+    "MD": {
+      "name": "Maryland", "type": "progressive",
+      "standardDeduction": { "single": 2700, "mfj": 5450, "hoh": 5450 },
+      "note": "State rates only; county/city piggyback tax handled in tax-local-2026.json.",
+      "brackets": {
+        "single": [
+          { "upTo": 1000, "rate": 0.02 }, { "upTo": 2000, "rate": 0.03 },
+          { "upTo": 3000, "rate": 0.04 }, { "upTo": 100000, "rate": 0.0475 },
+          { "upTo": 125000, "rate": 0.05 }, { "upTo": 150000, "rate": 0.0525 },
+          { "upTo": 250000, "rate": 0.055 }, { "upTo": null, "rate": 0.0575 }
+        ],
+        "mfj": [
+          { "upTo": 1000, "rate": 0.02 }, { "upTo": 2000, "rate": 0.03 },
+          { "upTo": 3000, "rate": 0.04 }, { "upTo": 150000, "rate": 0.0475 },
+          { "upTo": 175000, "rate": 0.05 }, { "upTo": 225000, "rate": 0.0525 },
+          { "upTo": 300000, "rate": 0.055 }, { "upTo": null, "rate": 0.0575 }
+        ],
+        "hoh": [
+          { "upTo": 1000, "rate": 0.02 }, { "upTo": 2000, "rate": 0.03 },
+          { "upTo": 3000, "rate": 0.04 }, { "upTo": 150000, "rate": 0.0475 },
+          { "upTo": 175000, "rate": 0.05 }, { "upTo": 225000, "rate": 0.0525 },
+          { "upTo": 300000, "rate": 0.055 }, { "upTo": null, "rate": 0.0575 }
+        ]
+      }
+    },
+    "WI": {
+      "name": "Wisconsin", "type": "progressive",
+      "standardDeduction": { "single": 13230, "mfj": 24490, "hoh": 17880 },
+      "note": "Wisconsin's sliding standard deduction modeled at its maximum (it phases out at higher incomes).",
+      "brackets": {
+        "single": [
+          { "upTo": 14680, "rate": 0.035 }, { "upTo": 29370, "rate": 0.044 },
+          { "upTo": 323290, "rate": 0.053 }, { "upTo": null, "rate": 0.0765 }
+        ],
+        "mfj": [
+          { "upTo": 19580, "rate": 0.035 }, { "upTo": 39150, "rate": 0.044 },
+          { "upTo": 431060, "rate": 0.053 }, { "upTo": null, "rate": 0.0765 }
+        ],
+        "hoh": [
+          { "upTo": 14680, "rate": 0.035 }, { "upTo": 29370, "rate": 0.044 },
+          { "upTo": 323290, "rate": 0.053 }, { "upTo": null, "rate": 0.0765 }
+        ]
+      }
+    },
+    "NM": {
+      "name": "New Mexico", "type": "progressive",
+      "standardDeduction": { "single": 16100, "mfj": 32200, "hoh": 24150 },
+      "brackets": {
+        "single": [
+          { "upTo": 5500, "rate": 0.015 }, { "upTo": 16500, "rate": 0.032 },
+          { "upTo": 33500, "rate": 0.043 }, { "upTo": 66500, "rate": 0.047 },
+          { "upTo": 210000, "rate": 0.049 }, { "upTo": null, "rate": 0.059 }
+        ],
+        "mfj": [
+          { "upTo": 8250, "rate": 0.015 }, { "upTo": 24750, "rate": 0.032 },
+          { "upTo": 50250, "rate": 0.043 }, { "upTo": 99750, "rate": 0.047 },
+          { "upTo": 315000, "rate": 0.049 }, { "upTo": null, "rate": 0.059 }
+        ],
+        "hoh": [
+          { "upTo": 8250, "rate": 0.015 }, { "upTo": 24750, "rate": 0.032 },
+          { "upTo": 50250, "rate": 0.043 }, { "upTo": 99750, "rate": 0.047 },
+          { "upTo": 315000, "rate": 0.049 }, { "upTo": null, "rate": 0.059 }
+        ]
+      }
+    },
+    "MO": {
+      "name": "Missouri", "type": "progressive",
+      "standardDeduction": { "single": 16100, "mfj": 32200, "hoh": 24150 },
+      "note": "Missouri uses the federal standard deduction. Same bracket schedule for all filing statuses.",
+      "brackets": {
+        "single": [
+          { "upTo": 1313, "rate": 0 }, { "upTo": 2626, "rate": 0.02 },
+          { "upTo": 3939, "rate": 0.025 }, { "upTo": 5252, "rate": 0.03 },
+          { "upTo": 6565, "rate": 0.035 }, { "upTo": 7878, "rate": 0.04 },
+          { "upTo": 9191, "rate": 0.045 }, { "upTo": null, "rate": 0.047 }
+        ],
+        "mfj": [
+          { "upTo": 1313, "rate": 0 }, { "upTo": 2626, "rate": 0.02 },
+          { "upTo": 3939, "rate": 0.025 }, { "upTo": 5252, "rate": 0.03 },
+          { "upTo": 6565, "rate": 0.035 }, { "upTo": 7878, "rate": 0.04 },
+          { "upTo": 9191, "rate": 0.045 }, { "upTo": null, "rate": 0.047 }
+        ],
+        "hoh": [
+          { "upTo": 1313, "rate": 0 }, { "upTo": 2626, "rate": 0.02 },
+          { "upTo": 3939, "rate": 0.025 }, { "upTo": 5252, "rate": 0.03 },
+          { "upTo": 6565, "rate": 0.035 }, { "upTo": 7878, "rate": 0.04 },
+          { "upTo": 9191, "rate": 0.045 }, { "upTo": null, "rate": 0.047 }
+        ]
+      }
+    },
+    "NE": {
+      "name": "Nebraska", "type": "progressive",
+      "standardDeduction": { "single": 8350, "mfj": 16700, "hoh": 12250 },
+      "note": "Top rate 4.55% for 2026 per LB 754 phase-down (third and fourth brackets converge).",
+      "brackets": {
+        "single": [
+          { "upTo": 3700, "rate": 0.0246 }, { "upTo": 22170, "rate": 0.0351 },
+          { "upTo": null, "rate": 0.0455 }
+        ],
+        "mfj": [
+          { "upTo": 7390, "rate": 0.0246 }, { "upTo": 44350, "rate": 0.0351 },
+          { "upTo": null, "rate": 0.0455 }
+        ],
+        "hoh": [
+          { "upTo": 6860, "rate": 0.0246 }, { "upTo": 35730, "rate": 0.0351 },
+          { "upTo": null, "rate": 0.0455 }
+        ]
+      }
+    },
+    "VA": {
+      "name": "Virginia", "type": "progressive",
+      "standardDeduction": { "single": 8500, "mfj": 17000, "hoh": 8500 },
+      "brackets": {
+        "single": [
+          { "upTo": 3000, "rate": 0.02 }, { "upTo": 5000, "rate": 0.03 },
+          { "upTo": 17000, "rate": 0.05 }, { "upTo": null, "rate": 0.0575 }
+        ],
+        "mfj": [
+          { "upTo": 3000, "rate": 0.02 }, { "upTo": 5000, "rate": 0.03 },
+          { "upTo": 17000, "rate": 0.05 }, { "upTo": null, "rate": 0.0575 }
+        ],
+        "hoh": [
+          { "upTo": 3000, "rate": 0.02 }, { "upTo": 5000, "rate": 0.03 },
+          { "upTo": 17000, "rate": 0.05 }, { "upTo": null, "rate": 0.0575 }
+        ]
+      }
+    },
+    "MN": {
+      "name": "Minnesota", "type": "progressive",
+      "standardDeduction": { "single": 14950, "mfj": 29900, "hoh": 22500 },
+      "brackets": {
+        "single": [
+          { "upTo": 32570, "rate": 0.0535 }, { "upTo": 106990, "rate": 0.068 },
+          { "upTo": 198630, "rate": 0.0785 }, { "upTo": null, "rate": 0.0985 }
+        ],
+        "mfj": [
+          { "upTo": 47620, "rate": 0.0535 }, { "upTo": 189180, "rate": 0.068 },
+          { "upTo": 330410, "rate": 0.0785 }, { "upTo": null, "rate": 0.0985 }
+        ],
+        "hoh": [
+          { "upTo": 40100, "rate": 0.0535 }, { "upTo": 161130, "rate": 0.068 },
+          { "upTo": 264050, "rate": 0.0785 }, { "upTo": null, "rate": 0.0985 }
+        ]
+      }
+    },
+    "KS": {
+      "name": "Kansas", "type": "progressive",
+      "standardDeduction": { "single": 3605, "mfj": 8240, "hoh": 6180 },
+      "brackets": {
+        "single": [
+          { "upTo": 23000, "rate": 0.052 }, { "upTo": null, "rate": 0.0558 }
+        ],
+        "mfj": [
+          { "upTo": 46000, "rate": 0.052 }, { "upTo": null, "rate": 0.0558 }
+        ],
+        "hoh": [
+          { "upTo": 23000, "rate": 0.052 }, { "upTo": null, "rate": 0.0558 }
+        ]
+      }
+    }
+  }
+}

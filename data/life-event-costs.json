@@ -1,0 +1,42 @@
+{
+  "vintage": 2026,
+  "source": "Child totals: USDA Expenditures on Children by Families (inflation-adjusted). Childcare: Care.com Cost of Care / DOL National Database of Childcare Prices. Private K-12: Private School Review. College: College Board Trends in College Pricing / US News.",
+  "child": {
+    "note": "Base annual cost is the USDA birth-to-18 total (~$300K inflation-adjusted, excluding childcare and education add-ons) divided over 18 years. Add-ons are windowed: childcare ages 0-4, private K-12 ages 5-17, college ages 18-21.",
+    "baseAnnual": 16500,
+    "totalBirthTo18": 297000,
+    "childcare": {
+      "nationalAvgAnnual": 17800,
+      "note": "National average annual cost of full-time care for a child under 5. stateAnnual values reflect full-time infant care in metro areas (range ~$22K TX to ~$42K CT per Care.com).",
+      "stateAnnual": {
+        "TX": 22000, "FL": 24500, "GA": 24000, "TN": 23500, "OK": 22500,
+        "KY": 23000, "IN": 23000, "OH": 24000, "NC": 25000, "MO": 24500,
+        "NM": 24000, "AZ": 24000, "KS": 24000, "NV": 26000, "MI": 25000,
+        "WI": 26500, "NE": 25500, "PA": 26000, "IL": 28000, "VA": 29000,
+        "MN": 29500, "CO": 30000, "OR": 31000, "MD": 32000, "WA": 33000,
+        "CA": 35000, "NY": 36000, "DC": 38000, "MA": 40000, "CT": 42000
+      }
+    },
+    "privateK12": {
+      "nationalAvgAnnual": 15000,
+      "elementaryAnnual": 14000,
+      "highSchoolAnnual": 18000,
+      "note": "Elementary rate applies ages 5-13, high-school rate ages 14-17."
+    },
+    "college": {
+      "publicInStateAnnual": 24000,
+      "publicInStateTuition": 11400,
+      "privateAnnual": 58000,
+      "privateTuition": 45000,
+      "note": "All-in annual cost (tuition + room/board + fees), used as the 529 funding target for ages 18-21."
+    }
+  },
+  "housePurchase": {
+    "fallbackPrice": 420000,
+    "closingCostPct": 0.03,
+    "defaultPropertyTaxRate": 0.011,
+    "defaultDownPct": 0.20,
+    "defaultMortgageRate": 0.065,
+    "defaultTermYears": 30
+  }
+}
