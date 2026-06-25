@@ -1,16 +1,21 @@
 import { defineConfig } from 'vite';
 import react from '@vitejs/plugin-react';
 import tailwindcss from '@tailwindcss/vite';
-import { writeFileSync, mkdirSync } from 'node:fs';
+import { writeFileSync, mkdirSync, cpSync } from 'node:fs';
 
-// Served at https://charliepolito.com/trajectory/ — absolute base so asset URLs
-// resolve correctly under the subpath regardless of trailing slash.
+// Primary served path — asset URLs are absolute to this base.
+// /compass/* also routes to this worker; assets still resolve since they're
+// served at /trajectory/assets/... by the same worker regardless of entry path.
 const BASE = '/trajectory/';
 
-// Workers Static Assets reads _headers from the assets-directory ROOT (dist/),
-// but the site itself is emitted into dist/trajectory/. This plugin writes the
-// _headers file to dist/ after the build — no separate script or file needed.
 const CF_HEADERS = `/trajectory/*
+  Content-Security-Policy: default-src 'self'; script-src 'self'; style-src 'self' 'unsafe-inline'; img-src 'self' data:; font-src 'self'; connect-src 'self'; object-src 'none'; base-uri 'self'; frame-ancestors 'none'; form-action 'none'
+  X-Content-Type-Options: nosniff
+  Referrer-Policy: no-referrer
+  X-Frame-Options: DENY
+  Permissions-Policy: geolocation=(), camera=(), microphone=(), payment=()
+
+/compass/*
   Content-Security-Policy: default-src 'self'; script-src 'self'; style-src 'self' 'unsafe-inline'; img-src 'self' data:; font-src 'self'; connect-src 'self'; object-src 'none'; base-uri 'self'; frame-ancestors 'none'; form-action 'none'
   X-Content-Type-Options: nosniff
   Referrer-Policy: no-referrer
@@ -25,7 +30,10 @@ function cloudflareHeaders() {
     closeBundle() {
       mkdirSync('dist', { recursive: true });
       writeFileSync('dist/_headers', CF_HEADERS);
+      // Mirror the built app under /compass so both routes have an index.html
+      cpSync('dist/trajectory', 'dist/compass', { recursive: true });
       console.log('cf-headers: wrote dist/_headers');
+      console.log('cf-mirror: copied dist/trajectory → dist/compass');
     },
   };
 }
