@@ -20,13 +20,14 @@ export function SectionTitle({ children, hint }) {
 }
 
 export function Field({ label, children, className = '' }) {
-  // Cells stretch to equal height in a grid row; mt-auto bottom-anchors the
-  // input so a label that wraps to two lines doesn't push its input below the
-  // single-line ones beside it. No effect when all labels are the same height.
+  // Top-aligned: the input sits directly under its label, so a tall non-Field
+  // sibling in the same grid row (e.g. the effective-tax card) doesn't open a
+  // gap. Where labels themselves wrap and inputs must line up (the constants
+  // grid), the parent reserves a uniform label height via a Tailwind variant.
   return (
-    <label className={`flex h-full flex-col ${className}`}>
-      <span className="mb-1 text-xs font-medium leading-5 text-slate-500">{label}</span>
-      <div className="mt-auto">{children}</div>
+    <label className={`block ${className}`}>
+      <span className="mb-1 block text-xs font-medium leading-5 text-slate-500">{label}</span>
+      {children}
     </label>
   );
 }

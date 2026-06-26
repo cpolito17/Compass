@@ -31,7 +31,7 @@ export default function ConstantsPanel({ constants, setConstants }) {
             transition={{ duration: 0.2 }}
             className="overflow-hidden"
           >
-            <div className="grid grid-cols-2 gap-3 px-4 pb-4 sm:grid-cols-3 lg:grid-cols-6">
+            <div className="grid grid-cols-2 gap-3 px-4 pb-4 sm:grid-cols-3 lg:grid-cols-6 [&_label>span]:min-h-[2.5rem]">
               <Field label="Market return (nominal)">
                 <PercentInput value={constants.marketReturn} onChange={set('marketReturn')} />
               </Field>
