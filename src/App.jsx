@@ -68,7 +68,7 @@ export default function App() {
               </button>
             ))}
           </nav>
-          <div className="w-24 text-right text-xs text-slate-400 max-sm:hidden">no accounts · no ads</div>
+          <div className="whitespace-nowrap text-right text-xs text-slate-400 max-sm:hidden">no accounts · no ads</div>
         </div>
       </header>
 
