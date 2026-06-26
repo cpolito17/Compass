@@ -20,10 +20,13 @@ export function SectionTitle({ children, hint }) {
 }
 
 export function Field({ label, children, className = '' }) {
+  // Cells stretch to equal height in a grid row; mt-auto bottom-anchors the
+  // input so a label that wraps to two lines doesn't push its input below the
+  // single-line ones beside it. No effect when all labels are the same height.
   return (
-    <label className={`block ${className}`}>
-      <span className="mb-1 block text-xs font-medium text-slate-500">{label}</span>
-      {children}
+    <label className={`flex h-full flex-col ${className}`}>
+      <span className="mb-1 text-xs font-medium leading-5 text-slate-500">{label}</span>
+      <div className="mt-auto">{children}</div>
     </label>
   );
 }
