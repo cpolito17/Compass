@@ -32,8 +32,15 @@ export default function App() {
       <header className="sticky top-0 z-40 border-b border-slate-200/80 bg-white/80 backdrop-blur">
         <div className="mx-auto flex max-w-6xl items-center justify-between px-4 py-3">
           <div className="flex items-center gap-2">
-            <div className="flex h-7 w-7 items-center justify-center rounded-lg bg-gradient-to-br from-indigo-500 to-violet-500 text-sm font-bold text-white">
-              C
+            <div className="flex h-7 w-7 items-center justify-center rounded-lg bg-gradient-to-br from-indigo-500 to-violet-500 text-white">
+              <svg viewBox="0 0 32 32" className="h-5 w-5" fill="none" aria-hidden="true">
+                <circle cx="16" cy="16" r="10.5" stroke="currentColor" strokeOpacity="0.55" strokeWidth="1.5" />
+                <path d="M16 5 L19 16 L16 16 Z" fill="currentColor" />
+                <path d="M16 5 L13 16 L16 16 Z" fill="currentColor" fillOpacity="0.7" />
+                <path d="M16 27 L19 16 L16 16 Z" fill="currentColor" fillOpacity="0.7" />
+                <path d="M16 27 L13 16 L16 16 Z" fill="currentColor" fillOpacity="0.45" />
+                <circle cx="16" cy="16" r="1.7" fill="currentColor" />
+              </svg>
             </div>
             <span className="text-base font-semibold tracking-tight text-slate-800">Compass</span>
           </div>
