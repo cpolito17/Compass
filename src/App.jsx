@@ -2,10 +2,11 @@ import { useMemo, useState } from 'react';
 import { AnimatePresence, motion } from 'framer-motion';
 import { appData, DATA_VINTAGE } from './lib/data.js';
 import { simulate } from './engine/simulate.js';
-import { useProfile, useConstants, useEvents, useControls, useBudget, useCompare } from './state/useStore.js';
+import { useProfile, useConstants, useEvents, useControls, useBudget, useCompare, usePersistedState } from './state/useStore.js';
 import TrajectoryTab from './tabs/TrajectoryTab.jsx';
 import BudgetTab from './tabs/BudgetTab.jsx';
 import CompareTab from './tabs/CompareTab.jsx';
+import WelcomeModal from './components/WelcomeModal.jsx';
 
 const TABS = ['Trajectory', 'Budget', 'Compare'];
 
@@ -17,6 +18,8 @@ export default function App() {
   const [controls, setControls] = useControls();
   const [budget, setBudget] = useBudget();
   const [compare, setCompare] = useCompare();
+  // First-visit welcome: defaults to unseen, then sticks once dismissed.
+  const [seenWelcome, setSeenWelcome] = usePersistedState('pf.seenWelcome', false);
 
   // One engine, one calculation path (§2): the simulation is computed once here
   // and consumed by Trajectory; Compare reuses the tax engine per city.
@@ -29,6 +32,7 @@ export default function App() {
 
   return (
     <div className="flex min-h-screen flex-col">
+      <WelcomeModal open={!seenWelcome} onClose={() => setSeenWelcome(true)} />
       <header className="sticky top-0 z-40 border-b border-slate-200/80 bg-white/80 backdrop-blur">
         <div className="mx-auto flex max-w-6xl items-center justify-between px-4 py-3">
           <div className="flex items-center gap-2">

@@ -108,7 +108,7 @@ export default function BudgetTab({ profile, setProfile, budget, setBudget }) {
   const [expanded, setExpanded] = useState('Spending');
   // Display period for every dollar figure on this tab. Amounts are stored
   // annually; this is a pure display/entry transform (monthly entry stores ×12).
-  const [period, setPeriod] = usePersistedState('pf.budgetPeriod', 'annual');
+  const [period, setPeriod] = usePersistedState('pf.budgetPeriod', 'monthly');
   const div = period === 'monthly' ? 12 : 1;
   const per = period === 'monthly' ? '/mo' : '/yr';
   const cats = appData.spending.categories;
@@ -159,8 +159,8 @@ export default function BudgetTab({ profile, setProfile, budget, setBudget }) {
         <span className="text-xs text-slate-400">Show all amounts</span>
         <Toggle
           options={[
-            { value: 'annual', label: 'Annual' },
             { value: 'monthly', label: 'Monthly' },
+            { value: 'annual', label: 'Annual' },
           ]}
           value={period}
           onChange={setPeriod}
