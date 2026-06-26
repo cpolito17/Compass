@@ -9,7 +9,7 @@ import {
 import { motion } from 'framer-motion';
 import { Card, SectionTitle, Field, NumberInput, PercentInput, Toggle } from '../../components/ui.jsx';
 import AnimatedNumber from '../../components/AnimatedNumber.jsx';
-import { fmtUSD, fmtUSDCompact } from '../../lib/format.js';
+import { fmtUSD, fmtUSDCompact, fmtPct } from '../../lib/format.js';
 
 function BreakdownTooltip({ active, payload, mode }) {
   if (!active || !payload?.length) return null;
@@ -33,7 +33,17 @@ function BreakdownTooltip({ active, payload, mode }) {
           <span className={`font-medium tabular-nums ${cls}`}>{fmtUSD(v)}</span>
         </div>
       ))}
-      {s.retired && <div className="mt-1 border-t border-slate-100 pt-1 text-slate-400">retired{s.depleted ? ' · portfolio depleted' : ''}</div>}
+      <div className="mt-1 flex justify-between gap-6 border-t border-slate-100 pt-1">
+        <span className="text-slate-500">Saving rate</span>
+        {s.retired ? (
+          <span className="font-medium text-slate-400">— in retirement</span>
+        ) : (
+          <span className={`font-medium tabular-nums ${s.savingRate < 0 ? 'text-rose-600' : 'text-emerald-600'}`}>
+            {fmtPct(s.savingRate)}
+          </span>
+        )}
+      </div>
+      {s.retired && <div className="mt-1 text-slate-400">retired{s.depleted ? ' · portfolio depleted' : ''}</div>}
     </div>
   );
 }
@@ -54,6 +64,7 @@ export default function NetWorthChart({ sim, controls, setControls, profile }) {
           savings: Math.round(s.components.savings / f),
           assets: Math.round(s.components.assets / f),
           debt: Math.round(s.components.debt / f),
+          savingRate: s.savingRate,
           retired: s.retired,
           depleted: s.depleted,
         };

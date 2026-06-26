@@ -380,6 +380,17 @@ function EventEditor({ draft, setDraft, onSave, onCancel, onDelete, sim, profile
 export default function EventTimeline({ events, setEvents, sim, profile, constants, controls }) {
   const [editing, setEditing] = useState(null); // {draft, isNew}
   const sorted = useMemo(() => [...events].sort((a, b) => a.age - b.age), [events]);
+  // Events at the same age share an x position and would stack invisibly, so we
+  // group them: a single-event year renders one bubble; a multi-event year shows
+  // a counted bubble that expands vertically on hover (§5.3).
+  const groups = useMemo(() => {
+    const byAge = new Map();
+    for (const ev of sorted) {
+      if (!byAge.has(ev.age)) byAge.set(ev.age, []);
+      byAge.get(ev.age).push(ev);
+    }
+    return [...byAge.entries()].map(([age, evs]) => ({ age, evs }));
+  }, [sorted]);
   const span = Math.max(1, 100 - profile.age);
 
   const openNew = () => {
@@ -417,26 +428,66 @@ export default function EventTimeline({ events, setEvents, sim, profile, constan
           );
         })}
         <AnimatePresence>
-          {sorted.map((ev) => {
-            const x = ((ev.age - profile.age) / span) * 100;
+          {groups.map(({ age, evs }) => {
+            const x = ((age - profile.age) / span) * 100;
+            const left = `${Math.min(99, Math.max(1, x))}%`;
+            const open = (ev) => setEditing({ isNew: false, draft: { ...ev } });
             return (
-              <motion.button
-                key={ev.id}
-                type="button"
+              <motion.div
+                key={age}
                 initial={{ opacity: 0, scale: 0.5, y: 6 }}
                 animate={{ opacity: 1, scale: 1, y: 0 }}
                 exit={{ opacity: 0, scale: 0.5 }}
                 transition={{ type: 'spring', stiffness: 500, damping: 30 }}
-                onClick={() => setEditing({ isNew: false, draft: { ...ev } })}
-                className="group absolute top-3 -translate-x-1/2"
-                style={{ left: `${Math.min(99, Math.max(1, x))}%` }}
-                title={`${typeMeta[ev.type].label} at ${ev.age}`}
+                className="group absolute top-3 z-10 -translate-x-1/2 hover:z-30"
+                style={{ left }}
               >
-                <span className="flex h-9 w-9 items-center justify-center rounded-full border-2 border-white bg-gradient-to-br from-indigo-100 to-violet-100 text-base shadow-sm transition group-hover:scale-110 group-hover:shadow-md">
-                  {typeMeta[ev.type].icon}
-                </span>
-                <span className="mt-0.5 block text-center text-[10px] font-semibold text-slate-500">{ev.age}</span>
-              </motion.button>
+                {evs.length === 1 ? (
+                  <button
+                    type="button"
+                    onClick={() => open(evs[0])}
+                    className="block"
+                    title={`${typeMeta[evs[0].type].label} at ${age}`}
+                  >
+                    <span className="flex h-9 w-9 items-center justify-center rounded-full border-2 border-white bg-gradient-to-br from-indigo-100 to-violet-100 text-base shadow-sm transition group-hover:scale-110 group-hover:shadow-md">
+                      {typeMeta[evs[0].type].icon}
+                    </span>
+                    <span className="mt-0.5 block text-center text-[10px] font-semibold text-slate-500">{age}</span>
+                  </button>
+                ) : (
+                  <>
+                    {/* Collapsed: one bubble with a count badge; fades out on hover. */}
+                    <div className="block transition-opacity group-hover:pointer-events-none group-hover:opacity-0" title={`${evs.length} events at ${age} — hover to expand`}>
+                      <span className="relative flex h-9 w-9 items-center justify-center rounded-full border-2 border-white bg-gradient-to-br from-indigo-100 to-violet-100 text-base shadow-sm transition group-hover:scale-110">
+                        {typeMeta[evs[0].type].icon}
+                        <span className="absolute -right-1.5 -top-1.5 flex h-4 min-w-4 items-center justify-center rounded-full bg-indigo-500 px-1 text-[9px] font-bold text-white shadow">
+                          {evs.length}
+                        </span>
+                      </span>
+                      <span className="mt-0.5 block text-center text-[10px] font-semibold text-slate-500">{age}</span>
+                    </div>
+                    {/* Expanded: vertical list of every event that year, on hover. */}
+                    <div className="pointer-events-none absolute left-1/2 top-0 -translate-x-1/2 opacity-0 transition-all duration-150 group-hover:pointer-events-auto group-hover:opacity-100">
+                      <div className="flex flex-col gap-1 rounded-xl border border-slate-200 bg-white/95 p-1.5 shadow-lg backdrop-blur">
+                        <div className="px-1 text-center text-[10px] font-semibold text-slate-400">Age {age}</div>
+                        {evs.map((ev) => (
+                          <button
+                            key={ev.id}
+                            type="button"
+                            onClick={() => open(ev)}
+                            className="flex items-center gap-2 whitespace-nowrap rounded-lg px-1.5 py-1 text-left text-xs text-slate-600 transition hover:bg-indigo-50 hover:text-indigo-700"
+                          >
+                            <span className="flex h-6 w-6 shrink-0 items-center justify-center rounded-full bg-gradient-to-br from-indigo-100 to-violet-100 text-sm">
+                              {typeMeta[ev.type].icon}
+                            </span>
+                            {typeMeta[ev.type].label}
+                          </button>
+                        ))}
+                      </div>
+                    </div>
+                  </>
+                )}
+              </motion.div>
             );
           })}
         </AnimatePresence>

@@ -486,8 +486,13 @@ function runPass(profile, constants, events, retirementAge, withdrawalReal, data
       (s, d) => s + (mortgage && d.id === mortgage.id ? 0 : d.balance),
       0
     );
-    const savings = state.cash + state.investments;
-    const netWorth = savings + state.k401 + homeEquity + namedAssetsValue - otherDebt;
+    const savingsRaw = state.cash + state.investments;
+    const netWorth = savingsRaw + state.k401 + homeEquity + namedAssetsValue - otherDebt;
+    // Tooltip-facing breakdown (§5.2): keep Savings and Assets from showing a
+    // misleading negative. A cash overdraft or an underwater home surfaces as
+    // Debt instead, so the four parts still sum exactly to net worth.
+    const cashDeficit = Math.max(0, -savingsRaw);
+    const underwaterEquity = Math.max(0, -homeEquity);
     snapshots.push({
       age,
       year,
@@ -516,7 +521,12 @@ function runPass(profile, constants, events, retirementAge, withdrawalReal, data
         otherDebt,
         totalDebt: otherDebt + mortgageBalance,
       },
-      components: { k401: state.k401, savings, assets: homeEquity + namedAssetsValue, debt: otherDebt },
+      components: {
+        k401: state.k401,
+        savings: Math.max(0, savingsRaw),
+        assets: namedAssetsValue + Math.max(0, homeEquity),
+        debt: otherDebt + cashDeficit + underwaterEquity,
+      },
       netWorth,
       city: state.city,
       filingStatus: state.filingStatus,

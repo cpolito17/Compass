@@ -303,6 +303,38 @@ describe('10. Retirement controls (SWR relationships)', () => {
   });
 });
 
+describe('Net-worth breakdown components', () => {
+  it('always sums to net worth across the whole projection', () => {
+    const p = profile({
+      home: { owned: true, value: 450000, mortgageDebtId: 'm1' },
+      debts: [{ id: 'm1', name: 'Mortgage', balance: 300000, apr: 0.05, termYears: 30 }],
+    });
+    const r = simulate(p, constants, [], controls, appData);
+    for (const s of r.snapshots) {
+      const { k401, savings, assets, debt } = s.components;
+      expect(savings).toBeGreaterThanOrEqual(0);
+      expect(assets).toBeGreaterThanOrEqual(0);
+      expect(k401 + savings + assets - debt).toBeCloseTo(s.netWorth, 4);
+    }
+  });
+
+  it('surfaces an underwater home as Debt, not negative Assets', () => {
+    // Mortgage exceeds the home value → negative equity.
+    const p = profile({
+      cash: 5000,
+      investments: 0,
+      home: { owned: true, value: 200000, mortgageDebtId: 'm1' },
+      debts: [{ id: 'm1', name: 'Mortgage', balance: 300000, apr: 0.05, termYears: 30 }],
+    });
+    const r = simulate(p, constants, [], controls, appData);
+    const s0 = r.snapshots[0];
+    expect(s0.components.assets).toBe(0); // no positive equity to show
+    expect(s0.components.debt).toBeGreaterThan(0); // the shortfall lands here
+    expect(s0.components.k401 + s0.components.savings + s0.components.assets - s0.components.debt)
+      .toBeCloseTo(s0.netWorth, 4);
+  });
+});
+
 describe('Supporting math', () => {
   it('caps 401k employee contribution at the IRS limit and matches correctly', () => {
     const p = profile({ income: 300000 });
