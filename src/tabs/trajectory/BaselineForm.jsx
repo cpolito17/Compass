@@ -120,7 +120,7 @@ export default function BaselineForm({ profile, setProfile, constants, setConsta
         <div className="flex flex-wrap items-center justify-between gap-3">
           <div>
             <div className="text-xs font-semibold uppercase tracking-wide text-slate-500">Saving plan</div>
-            <p className="mt-0.5 whitespace-nowrap text-[11px] text-slate-400">
+            <p className="mt-0.5 whitespace-normal text-[11px] text-slate-400 sm:whitespace-nowrap">
               {profile.savingMode === 'auto'
                 ? 'Each year’s surplus flows in order: employer match → high-APR debt → HSA → Roth IRA → max 401k → brokerage.'
                 : 'A fixed 401k contribution; whatever is left over each year goes to a taxable brokerage.'}
