@@ -2,7 +2,7 @@
 // (two-way bound to dollars), a small PDF curve with a sliding dot per category,
 // and a stacked Saving/Tax/Spending bar with click-to-expand subcategories.
 
-import { useMemo, useState } from 'react';
+import { useEffect, useMemo, useRef, useState } from 'react';
 import { AnimatePresence, motion } from 'framer-motion';
 import { ResponsiveContainer, BarChart, Bar, XAxis, YAxis, Tooltip } from 'recharts';
 import { Card, SectionTitle, NumberInput, Button, Toggle } from '../components/ui.jsx';
@@ -106,6 +106,10 @@ function CategorySlider({ cat, dollars, setDollars, period }) {
 
 export default function BudgetTab({ profile, setProfile, budget, setBudget }) {
   const [expanded, setExpanded] = useState('Spending');
+  // Transient "sent" confirmation on the "Use this budget in Trajectory" button.
+  const [sent, setSent] = useState(false);
+  const sentTimer = useRef(null);
+  useEffect(() => () => clearTimeout(sentTimer.current), []);
   // Display period for every dollar figure on this tab. Amounts are stored
   // annually; this is a pure display/entry transform (monthly entry stores ×12).
   const [period, setPeriod] = usePersistedState('pf.budgetPeriod', 'monthly');
@@ -270,12 +274,57 @@ export default function BudgetTab({ profile, setProfile, budget, setBudget }) {
             </div>
           </div>
           <Button
-            className="mt-4 w-full"
-            onClick={() =>
-              setProfile((p) => ({ ...p, baselineSpending: Math.round(totals.spending - totals.debtService) }))
-            }
+            className={`mt-4 w-full overflow-hidden transition-colors duration-300 ${
+              sent ? '!bg-emerald-600 hover:!bg-emerald-600' : ''
+            }`}
+            onClick={() => {
+              setProfile((p) => ({ ...p, baselineSpending: Math.round(totals.spending - totals.debtService) }));
+              setSent(true);
+              clearTimeout(sentTimer.current);
+              sentTimer.current = setTimeout(() => setSent(false), 1900);
+            }}
           >
-            Use this budget in Trajectory ({fmtUSD((totals.spending - totals.debtService) / div)}{per})
+            <AnimatePresence mode="wait" initial={false}>
+              {sent ? (
+                <motion.span
+                  key="sent"
+                  className="flex items-center justify-center gap-1.5"
+                  initial={{ opacity: 0, y: 8 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  exit={{ opacity: 0, y: -8 }}
+                  transition={{ duration: 0.18 }}
+                >
+                  <motion.svg
+                    viewBox="0 0 24 24"
+                    className="h-4 w-4"
+                    fill="none"
+                    stroke="currentColor"
+                    strokeWidth="3"
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                  >
+                    <motion.path
+                      d="M4 12.5 L10 18 L20 6"
+                      initial={{ pathLength: 0 }}
+                      animate={{ pathLength: 1 }}
+                      transition={{ delay: 0.08, duration: 0.32, ease: 'easeOut' }}
+                    />
+                  </motion.svg>
+                  Sent to Trajectory
+                </motion.span>
+              ) : (
+                <motion.span
+                  key="label"
+                  className="block"
+                  initial={{ opacity: 0, y: 8 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  exit={{ opacity: 0, y: -8 }}
+                  transition={{ duration: 0.18 }}
+                >
+                  Use this budget in Trajectory ({fmtUSD((totals.spending - totals.debtService) / div)}{per})
+                </motion.span>
+              )}
+            </AnimatePresence>
           </Button>
           <p className="mt-2 text-[11px] text-slate-400">
             Sets your Trajectory baseline spending to the category total (debt payments are already modeled separately there).
