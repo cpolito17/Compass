@@ -301,7 +301,6 @@ function EventEditor({ draft, setDraft, onSave, onCancel, onDelete, sim, profile
       initial={{ opacity: 0 }}
       animate={{ opacity: 1 }}
       exit={{ opacity: 0 }}
-      onClick={onCancel}
     >
       <motion.div
         className="w-full max-w-lg rounded-2xl bg-white p-5 shadow-xl"
@@ -309,7 +308,6 @@ function EventEditor({ draft, setDraft, onSave, onCancel, onDelete, sim, profile
         animate={{ scale: 1, y: 0 }}
         exit={{ scale: 0.96, y: 8, opacity: 0 }}
         transition={{ type: 'spring', stiffness: 400, damping: 32 }}
-        onClick={(e) => e.stopPropagation()}
       >
         <div className="mb-4 flex items-center justify-between">
           <h3 className="text-base font-semibold text-slate-800">
