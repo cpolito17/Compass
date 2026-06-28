@@ -1,5 +1,5 @@
 import { useMemo, useState } from 'react';
-import { AnimatePresence, motion } from 'framer-motion';
+import { motion } from 'framer-motion';
 import { appData, DATA_VINTAGE } from './lib/data.js';
 import { simulate } from './engine/simulate.js';
 import { useProfile, useConstants, useEvents, useControls, useBudget, useCompare, usePersistedState } from './state/useStore.js';
@@ -73,19 +73,21 @@ export default function App() {
       </header>
 
       <main className="mx-auto w-full max-w-6xl flex-1 px-4 py-6">
-        <AnimatePresence mode="wait">
-          <motion.div
-            key={tab}
-            initial={{ opacity: 0, y: 6 }}
-            animate={{ opacity: 1, y: 0 }}
-            exit={{ opacity: 0, y: -6 }}
-            transition={{ duration: 0.18, ease: 'easeOut' }}
-          >
-            {tab === 'Trajectory' && <TrajectoryTab {...shared} />}
-            {tab === 'Budget' && <BudgetTab {...shared} />}
-            {tab === 'Compare' && <CompareTab {...shared} />}
-          </motion.div>
-        </AnimatePresence>
+        {/* Enter-only animation keyed by tab. We intentionally avoid
+            AnimatePresence/mode="wait" here: gating the next tab on the exiting
+            tab's exit-complete callback could deadlock when a chart's
+            ResizeObserver fired during the exit (e.g. right after editing an
+            input), leaving the next tab unmounted — a blank page. */}
+        <motion.div
+          key={tab}
+          initial={{ opacity: 0, y: 6 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.18, ease: 'easeOut' }}
+        >
+          {tab === 'Trajectory' && <TrajectoryTab {...shared} />}
+          {tab === 'Budget' && <BudgetTab {...shared} />}
+          {tab === 'Compare' && <CompareTab {...shared} />}
+        </motion.div>
       </main>
 
       <footer className="border-t border-slate-200 bg-white">
