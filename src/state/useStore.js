@@ -18,7 +18,7 @@ export const DEFAULT_PROFILE = {
   baselineSpending: 55000,
   // Saving strategy (§6b). 'manual' keeps the fixed 401k % below; 'auto' ignores
   // it and routes each year's surplus through the financial order of operations.
-  savingMode: 'manual',
+  savingMode: 'auto',
   hsaEligible: false,
   hsaFamily: false,
 };

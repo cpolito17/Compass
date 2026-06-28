@@ -93,11 +93,12 @@ describe('2. House purchase + mortgage + payoff', () => {
     expect(snapAt(r, 49).debtService).toBeGreaterThan(0);
   });
 
-  it('a debt that fully amortizes before its payoff event becomes a warning no-op', () => {
+  it('a debt that fully amortizes before its payoff event is skipped with a warning', () => {
     const p = profile({ debts: [{ id: 'd1', name: 'Car loan', balance: 10000, apr: 0.05, termYears: 3 }] });
     const r = simulate(p, constants, [{ id: 'e3', type: 'payoffDebt', age: 40, debtId: 'd1' }], controls, appData);
     expect(r.warnings).toHaveLength(1);
-    expect(r.warnings[0].message).toMatch(/no-op/);
+    expect(r.warnings[0].message).toMatch(/already paid off/);
+    expect(r.warnings[0].message).toContain('Car loan'); // names the debt, never a raw id
   });
 });
 

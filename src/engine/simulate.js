@@ -501,12 +501,12 @@ function runPass(profile, constants, events, retirementAge, withdrawalReal, data
         }
         case 'payoffDebt': {
           const debt = state.debts.find((d) => d.id === ev.debtId);
-          if (!debt || debt.balance <= 0) {
-            warnings.push({
-              age,
-              eventId: ev.id,
-              message: `Debt ${debt ? `"${debt.name}"` : ev.debtId} already paid off — payoff is a no-op.`,
-            });
+          if (!debt) {
+            warnings.push({ age, eventId: ev.id, message: 'Pay-off skipped — that debt is no longer on the books.' });
+            break;
+          }
+          if (debt.balance <= 0) {
+            warnings.push({ age, eventId: ev.id, message: `"${debt.name}" is already paid off — pay-off skipped.` });
             break;
           }
           drawFunds(state, debt.balance);
