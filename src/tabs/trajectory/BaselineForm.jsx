@@ -1,7 +1,7 @@
 // Baseline input section (§5.1): a dense but tidy form writing into the shared
 // profile. Tax is derived automatically from city + filing status (§5.1).
 
-import { Card, SectionTitle, Field, NumberInput, PercentInput, Select, Button, Toggle } from '../../components/ui.jsx';
+import { Card, SectionTitle, Field, NumberInput, PercentInput, Select, Button, Toggle, Checkbox } from '../../components/ui.jsx';
 import CityAutocomplete from '../../components/CityAutocomplete.jsx';
 import AnimatedNumber from '../../components/AnimatedNumber.jsx';
 import ConstantsPanel from './ConstantsPanel.jsx';
@@ -99,7 +99,13 @@ export default function BaselineForm({ profile, setProfile, constants, setConsta
           <NumberInput value={profile.k401.balance} onChange={(v) => setK({ balance: v })} prefix="$" min={0} />
         </Field>
         <Field label="401k contribution">
-          <PercentInput value={profile.k401.employeeContribPct} onChange={(v) => setK({ employeeContribPct: v })} max={100} />
+          {profile.savingMode === 'auto' ? (
+            <div className="rounded-lg border border-dashed border-slate-200 bg-slate-50 px-2.5 py-1.5 text-xs text-slate-400">
+              set automatically
+            </div>
+          ) : (
+            <PercentInput value={profile.k401.employeeContribPct} onChange={(v) => setK({ employeeContribPct: v })} max={100} />
+          )}
         </Field>
         <Field label="Employer match rate">
           <PercentInput value={profile.k401.employerMatchRate} onChange={(v) => setK({ employerMatchRate: v })} max={200} />
@@ -107,6 +113,43 @@ export default function BaselineForm({ profile, setProfile, constants, setConsta
         <Field label="Match cap (% of salary)">
           <PercentInput value={profile.k401.employerMatchCapPct} onChange={(v) => setK({ employerMatchCapPct: v })} max={25} />
         </Field>
+      </div>
+
+      {/* Saving strategy (§6b): manual fixed-% vs. the financial order of operations. */}
+      <div className="mt-3 rounded-xl border border-slate-200 bg-slate-50/60 p-3">
+        <div className="flex flex-wrap items-center justify-between gap-3">
+          <div>
+            <div className="text-xs font-semibold uppercase tracking-wide text-slate-500">Saving plan</div>
+            <p className="mt-0.5 max-w-md text-[11px] text-slate-400">
+              {profile.savingMode === 'auto'
+                ? 'Each year’s surplus flows in order: employer match → high-APR debt → HSA → Roth IRA → max 401k → brokerage.'
+                : 'A fixed 401k contribution; whatever is left over each year goes to a taxable brokerage.'}
+            </p>
+          </div>
+          <Toggle
+            options={[
+              { value: 'manual', label: 'Manual' },
+              { value: 'auto', label: 'Auto-allocate' },
+            ]}
+            value={profile.savingMode || 'manual'}
+            onChange={(v) => set({ savingMode: v })}
+          />
+        </div>
+        {profile.savingMode === 'auto' && (
+          <div className="mt-2 flex flex-wrap items-center gap-4 border-t border-slate-200 pt-2">
+            <Checkbox checked={!!profile.hsaEligible} onChange={(v) => set({ hsaEligible: v })} label="HSA-eligible (on an HDHP)" />
+            {profile.hsaEligible && (
+              <Toggle
+                options={[
+                  { value: 'self', label: 'Self-only' },
+                  { value: 'family', label: 'Family' },
+                ]}
+                value={profile.hsaFamily ? 'family' : 'self'}
+                onChange={(v) => set({ hsaFamily: v === 'family' })}
+              />
+            )}
+          </div>
+        )}
       </div>
 
       <div className="mt-4 grid gap-4 lg:grid-cols-3">

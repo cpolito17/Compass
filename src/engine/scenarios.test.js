@@ -119,24 +119,55 @@ const scenarios = [
     e: [],
     c: { retirementAge: 45, swr: 0.04, mode: 'fixWithdrawal', targetWithdrawal: 150000 },
   },
+  {
+    name: 'auto-allocate, HSA-eligible, with high-APR debt',
+    p: profile({
+      savingMode: 'auto',
+      hsaEligible: true,
+      hsaFamily: true,
+      income: 160000,
+      debts: [
+        { id: 'cc', name: 'Credit card', balance: 12000, apr: 0.22, termYears: 5 },
+        { id: 'student', name: 'Student loan', balance: 30000, apr: 0.045, termYears: 10 },
+      ],
+    }),
+    e: [{ id: 'p1', type: 'promotion', age: 36, pctBump: 0.15 }],
+    c: fixAge({ retirementAge: 60 }),
+  },
+  {
+    name: 'auto-allocate, homeowner (mortgage stays on schedule)',
+    p: profile({
+      savingMode: 'auto',
+      income: 130000,
+      home: { owned: true, value: 500000, mortgageDebtId: 'm1' },
+      debts: [{ id: 'm1', name: 'Mortgage', balance: 340000, apr: 0.0625, termYears: 30 }],
+    }),
+    e: [],
+    c: fixAge(),
+  },
 ];
 
 // ── 1. Universal invariants on every snapshot of every scenario ──────────────
-function checkSnapshot(s, label) {
+function checkSnapshot(s, label, mode = 'manual') {
   const where = `${label} @age ${s.age}`;
 
   // Net-worth breakdown sums exactly, and never shows negative savings/assets.
-  const { k401, savings, assets, debt } = s.components;
+  const { k401, savings, roth, hsa, assets, debt } = s.components;
   expect(savings, `${where} savings`).toBeGreaterThanOrEqual(0);
   expect(assets, `${where} assets`).toBeGreaterThanOrEqual(0);
   expect(debt, `${where} debt`).toBeGreaterThanOrEqual(0);
-  expect(k401 + savings + assets - debt, `${where} NW identity`).toBeCloseTo(s.netWorth, 2);
+  expect(roth, `${where} roth`).toBeGreaterThanOrEqual(0);
+  expect(hsa, `${where} hsa`).toBeGreaterThanOrEqual(0);
+  expect(k401 + savings + roth + hsa + assets - debt, `${where} NW identity`).toBeCloseTo(s.netWorth, 2);
   expect(k401, `${where} k401==balance`).toBeCloseTo(s.balances.k401, 2);
+  expect(s.portfolio, `${where} portfolio`).toBeCloseTo(
+    s.balances.investments + s.balances.k401 + s.balances.roth + s.balances.hsa,
+    2
+  );
 
   // Balance-sheet bookkeeping.
   expect(s.balances.homeEquity, `${where} equity`).toBeCloseTo(s.balances.homeValue - s.balances.mortgageBalance, 2);
   expect(s.balances.totalDebt, `${where} totalDebt`).toBeCloseTo(s.balances.otherDebt + s.balances.mortgageBalance, 2);
-  expect(s.portfolio, `${where} portfolio`).toBeCloseTo(s.balances.investments + s.balances.k401, 2);
 
   // Tax parts sum, and the effective rate is consistent.
   const t = s.tax;
@@ -153,11 +184,22 @@ function checkSnapshot(s, label) {
     expect(s.contrib401k.employee, `${where} retired contrib`).toBe(0);
     expect(s.savingRate, `${where} retired rate`).toBe(0);
     expect(s.netSavings, `${where} retired netSavings`).toBe(0);
+  } else if (mode === 'auto') {
+    const a = s.allocation;
+    // Cash-flow conservation: take-home funds expenses, min debt, every bucket,
+    // and (when short) a draw from existing assets.
+    const out = a.livingExpenses + a.minDebt + a.employee401k + a.hsa + a.roth + a.brokerage + a.debtExtra - a.deficit;
+    expect(out, `${where} cash conservation`).toBeCloseTo(a.afterTax, 1);
+    // Saving rate = share of take-home directed at wealth-building.
+    const afterTax = s.income.gross - s.tax.total;
+    const expectedRate = afterTax > 0 ? Math.max(0, afterTax - s.spending.total - s.debtService) / afterTax : 0;
+    expect(s.savingRate, `${where} savingRate`).toBeCloseTo(expectedRate, 6);
   } else {
     const afterTax = s.income.gross - s.tax.total;
     const expectedNet = afterTax - s.spending.total - s.contrib401k.employee - s.debtService;
     expect(s.netSavings, `${where} netSavings`).toBeCloseTo(expectedNet, 2);
-    const expectedRate = afterTax > 0 ? expectedNet / afterTax : 0;
+    // Unified saving rate (same formula as auto mode): wealth-building / take-home.
+    const expectedRate = afterTax > 0 ? Math.max(0, afterTax - s.spending.total - s.debtService) / afterTax : 0;
     expect(s.savingRate, `${where} savingRate`).toBeCloseTo(expectedRate, 8);
   }
 
@@ -178,7 +220,7 @@ describe('Scenario matrix — universal invariants', () => {
     it(`holds across "${name}"`, () => {
       const r = simulate(p, C, e, c, appData);
       expect(r.snapshots.length).toBe(100 - p.age + 1);
-      for (const s of r.snapshots) checkSnapshot(s, name);
+      for (const s of r.snapshots) checkSnapshot(s, name, p.savingMode || 'manual');
 
       // inflFactor is monotonic non-decreasing; depletion is sticky.
       for (let i = 1; i < r.snapshots.length; i++) {
@@ -363,6 +405,79 @@ describe('Retirement-control meta (SWR relationships)', () => {
     const lo = simulate(profile(), C, [], { retirementAge: 65, swr: 0.03, mode: 'fixWithdrawal', targetWithdrawal: 60000 }, appData);
     const hi = simulate(profile(), C, [], { retirementAge: 65, swr: 0.05, mode: 'fixWithdrawal', targetWithdrawal: 60000 }, appData);
     expect(hi.meta.solvedAge).toBeLessThanOrEqual(lo.meta.solvedAge);
+  });
+});
+
+// ── 2b. Auto-allocate waterfall (financial order of operations, §6b) ─────────
+describe('Auto-allocate waterfall', () => {
+  it('captures the full match, maxes 401k/Roth/HSA, then funds the brokerage', () => {
+    const p = profile({ savingMode: 'auto', hsaEligible: true, hsaFamily: true, income: 160000, baselineSpending: 50000 });
+    const r = simulate(p, C, [], fixAge(), appData);
+    const a = r.snapshots[0].allocation;
+    expect(a.employee401k).toBeCloseTo(K.employeeLimit, 0); // maxed
+    expect(a.employerMatch).toBeCloseTo(Math.min(K.employeeLimit, 0.04 * 160000) * 1.0, 0);
+    expect(a.hsa).toBeCloseTo(appData.retirement.hsa.familyLimit, 0);
+    expect(a.roth).toBeCloseTo(K.iraLimit, 0);
+    expect(a.brokerage).toBeGreaterThan(0);
+  });
+
+  it('only funds the HSA when the user is HSA-eligible', () => {
+    const base = { savingMode: 'auto', income: 160000 };
+    const off = simulate(profile({ ...base, hsaEligible: false }), C, [], fixAge(), appData);
+    const on = simulate(profile({ ...base, hsaEligible: true, hsaFamily: false }), C, [], fixAge(), appData);
+    expect(off.snapshots[0].allocation.hsa).toBe(0);
+    expect(on.snapshots[0].allocation.hsa).toBeCloseTo(appData.retirement.hsa.selfLimit, 0);
+  });
+
+  it('cash-flow conserves: after-tax = expenses + min debt + every bucket (no-deficit year)', () => {
+    const p = profile({ savingMode: 'auto', hsaEligible: true, income: 150000 });
+    const a = simulate(p, C, [], fixAge(), appData).snapshots[0].allocation;
+    expect(a.deficit).toBe(0);
+    const out = a.livingExpenses + a.minDebt + a.employee401k + a.hsa + a.roth + a.brokerage + a.debtExtra;
+    expect(out).toBeCloseTo(a.afterTax, 1);
+  });
+
+  it('accelerates high-APR debt but leaves the mortgage on schedule', () => {
+    const manual = profile({
+      income: 130000,
+      home: { owned: true, value: 500000, mortgageDebtId: 'm1' },
+      debts: [
+        { id: 'm1', name: 'Mortgage', balance: 340000, apr: 0.0625, termYears: 30 },
+        { id: 'cc', name: 'Credit card', balance: 15000, apr: 0.21, termYears: 5 },
+      ],
+    });
+    const auto = { ...manual, savingMode: 'auto' };
+    const rm = simulate(manual, C, [], fixAge(), appData);
+    const ra = simulate(auto, C, [], fixAge(), appData);
+
+    // The 21% card is cleared earlier under auto than its scheduled payoff.
+    const cardGoneAuto = ra.snapshots.findIndex((s) => !s.entities.debts.some((d) => d.id === 'cc'));
+    const cardGoneManual = rm.snapshots.findIndex((s) => !s.entities.debts.some((d) => d.id === 'cc'));
+    expect(cardGoneAuto).toBeGreaterThan(-1);
+    expect(cardGoneAuto).toBeLessThan(cardGoneManual);
+
+    // The mortgage amortizes identically (never accelerated) in both modes.
+    for (const age of [35, 45, 55]) {
+      expect(snapAt(ra, age).balances.mortgageBalance).toBeCloseTo(snapAt(rm, age).balances.mortgageBalance, 2);
+    }
+  });
+
+  it('respects every contribution limit each year', () => {
+    const p = profile({ savingMode: 'auto', hsaEligible: true, hsaFamily: true, income: 250000 });
+    const r = simulate(p, C, [], fixAge(), appData);
+    for (const s of r.snapshots) {
+      const a = s.allocation;
+      expect(a.employee401k).toBeLessThanOrEqual(K.employeeLimit + 1e-6);
+      expect(a.roth).toBeLessThanOrEqual(K.iraLimit + 1e-6);
+      expect(a.hsa).toBeLessThanOrEqual(appData.retirement.hsa.familyLimit + 1e-6);
+    }
+  });
+
+  it('produces a different trajectory than manual mode', () => {
+    const base = profile({ income: 150000, hsaEligible: true });
+    const manual = simulate({ ...base, savingMode: 'manual' }, C, [], fixAge(), appData);
+    const auto = simulate({ ...base, savingMode: 'auto' }, C, [], fixAge(), appData);
+    expect(auto.snapshots.map((s) => Math.round(s.netWorth))).not.toEqual(manual.snapshots.map((s) => Math.round(s.netWorth)));
   });
 });
 

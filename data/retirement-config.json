@@ -6,6 +6,10 @@
     "annualAdditionsLimit": 72000,
     "iraLimit": 7500
   },
+  "hsa": {
+    "selfLimit": 4400,
+    "familyLimit": 8750
+  },
   "socialSecurity": {
     "fullRetirementAge": 67,
     "wageBase": 184500,

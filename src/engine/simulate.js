@@ -20,6 +20,10 @@ import { effectiveTax } from './tax.js';
 export const START_YEAR = 2026;
 export const END_AGE = 100;
 
+// Auto-allocate only accelerates debt above this APR; mortgages and cheaper
+// loans stay on their normal amortization schedule (§6b, standard FOO guidance).
+export const HIGH_APR_THRESHOLD = 0.06;
+
 /** Standard amortization: monthly payment for balance, APR, term in years (§14). */
 export function monthlyPayment(balance, apr, termYears) {
   const n = Math.max(1, Math.round(termYears * 12));
@@ -77,6 +81,8 @@ function initState(profile, constants, data) {
     cash: profile.cash || 0,
     investments: profile.investments || 0,
     k401: profile.k401 ? profile.k401.balance || 0 : 0,
+    roth: profile.rothBalance || 0,
+    hsa: profile.hsaBalance || 0,
     k401Params: {
       employeeContribPct: profile.k401 ? profile.k401.employeeContribPct || 0 : 0,
       employerMatchRate: profile.k401 ? profile.k401.employerMatchRate || 0 : 0,
@@ -159,6 +165,82 @@ function childCostForYear(ev, age, state, data) {
     cost += ev.collegeType === 'private' ? c.college.privateAnnual : c.college.publicInStateAnnual;
   }
   return cost * state.inflFactor;
+}
+
+/**
+ * Financial order of operations for one working year (§6b). Splits the year's
+ * surplus across buckets in priority: employer match → high-APR debt → HSA →
+ * Roth IRA → max out 401k → brokerage. Pre-tax buckets (401k, HSA) shrink the
+ * tax bill, so the tax/surplus loop is resolved with a short fixed-point.
+ */
+function allocateWaterfall(state, profile, data, gross, spending, debtService) {
+  const empLimit = data.retirement.k401.employeeLimit;
+  const addLimit = data.retirement.k401.annualAdditionsLimit;
+  const iraLimit = data.retirement.k401.iraLimit;
+  const hsaLimit = profile.hsaEligible
+    ? profile.hsaFamily
+      ? data.retirement.hsa.familyLimit
+      : data.retirement.hsa.selfLimit
+    : 0;
+  const p = state.k401Params;
+  const income = state.userIncome;
+  // Step 1: the employee deferral needed to capture the full employer match.
+  const eMatch = p.employerMatchRate > 0 ? Math.min(p.employerMatchCapPct * income, empLimit) : 0;
+  // Debts eligible for acceleration: above the APR threshold, never the mortgage,
+  // highest rate first (avalanche).
+  const payable = state.debts
+    .filter((d) => d.balance > 0 && d.apr > HIGH_APR_THRESHOLD && d.id !== state.home?.mortgageDebtId)
+    .sort((a, b) => b.apr - a.apr);
+
+  // Split a given surplus down the waterfall. Pure function of `capacity`.
+  const split = (capacity) => {
+    let rem = capacity;
+    const e1 = Math.min(eMatch, rem); // (1) match
+    rem -= e1;
+    const debtPayments = []; // (2) high-APR debt, avalanche
+    for (const d of payable) {
+      if (rem <= 0) break;
+      const pay = Math.min(d.balance, rem);
+      debtPayments.push({ id: d.id, amount: pay });
+      rem -= pay;
+    }
+    const hsaContrib = Math.min(hsaLimit, rem); // (3) HSA
+    rem -= hsaContrib;
+    const rothContrib = Math.min(iraLimit, rem); // (4) Roth IRA
+    rem -= rothContrib;
+    const max401 = Math.min(empLimit - e1, rem); // (5) max out 401k
+    rem -= max401;
+    const brokerage = rem; // (6) brokerage
+    return { e1, debtPayments, hsaContrib, rothContrib, max401, brokerage, pretax: e1 + hsaContrib + max401 };
+  };
+
+  // Converge the pre-tax total (it feeds back into the tax bill), then take one
+  // final split so capacity, tax, and the buckets are mutually consistent.
+  let pretaxGuess = eMatch;
+  for (let iter = 0; iter < 5; iter++) {
+    const tx = effectiveTax(gross, state.filingStatus, state.city, data, pretaxGuess);
+    const cap = gross - tx.total - spending - debtService;
+    const next = cap <= 0 ? 0 : split(cap).pretax;
+    if (Math.abs(next - pretaxGuess) < 1) {
+      pretaxGuess = next;
+      break;
+    }
+    pretaxGuess = next;
+  }
+  const tax = effectiveTax(gross, state.filingStatus, state.city, data, pretaxGuess);
+  const capacity = gross - tax.total - spending - debtService;
+  const s = capacity <= 0
+    ? { e1: 0, debtPayments: [], hsaContrib: 0, rothContrib: 0, max401: 0, brokerage: 0 }
+    : split(capacity);
+  const { e1, debtPayments, hsaContrib, rothContrib, max401, brokerage } = s;
+  const employee = e1 + max401;
+
+  // Employer match on the matched portion, then the combined additions cap.
+  let employer = Math.min(employee, p.employerMatchCapPct * income) * p.employerMatchRate;
+  if (employee + employer > addLimit) employer = Math.max(0, addLimit - employee);
+
+  const debtExtra = debtPayments.reduce((s, d) => s + d.amount, 0);
+  return { employee, employer, hsaContrib, rothContrib, brokerage, debtPayments, debtExtra, tax, capacity };
 }
 
 /**
@@ -288,25 +370,7 @@ function runPass(profile, constants, events, retirementAge, withdrawalReal, data
       state.realEarnings.push(state.userIncome / state.inflFactor);
     }
 
-    // ── 3. 401k contributions ────────────────────────────────────────────
-    let employee = 0;
-    let employer = 0;
-    if (!retired) {
-      const p = state.k401Params;
-      employee = Math.min(p.employeeContribPct * state.userIncome, data.retirement.k401.employeeLimit);
-      employer =
-        Math.min(p.employeeContribPct, p.employerMatchCapPct) * state.userIncome * p.employerMatchRate;
-      const combined = employee + employer;
-      const cap = data.retirement.k401.annualAdditionsLimit;
-      if (combined > cap) employer = Math.max(0, cap - employee);
-      state.k401 += employee + employer;
-    }
-
-    // ── 4. Taxes ──────────────────────────────────────────────────────────
-    const tax = effectiveTax(gross, state.filingStatus, state.city, data, employee);
-    const afterTaxIncome = gross - tax.total;
-
-    // ── 5. Spending ───────────────────────────────────────────────────────
+    // ── 3. Spending & scheduled (minimum) debt service ───────────────────
     const baseSpend =
       state.baselineSpending * state.inflFactor * state.colFactor * state.lifestyleMult * state.marriageColMult;
     let childCost = 0;
@@ -320,14 +384,66 @@ function runPass(profile, constants, events, retirementAge, withdrawalReal, data
       if (d.balance > 0) debtService += Math.min(12 * d.monthlyPayment, d.balance * (1 + d.apr));
     }
 
-    // ── 6. Cash flow & saving rate (working years) ───────────────────────
+    // ── 4. Contributions, taxes, and the saving waterfall ────────────────
+    // Two strategies (§6b): 'manual' keeps a fixed 401k % with the surplus going
+    // to a brokerage; 'auto' routes the surplus through the financial order of
+    // operations. Both populate `alloc` so the cash-flow view can render the flow.
+    let employee = 0;
+    let employer = 0;
+    let hsaContrib = 0;
+    let rothContrib = 0;
+    let brokerage = 0;
+    let debtExtra = 0;
+    let deficit = 0;
     let netSavings = 0;
     let savingRate = 0;
-    if (!retired) {
+    let tax;
+    let afterTaxIncome;
+
+    if (retired) {
+      tax = effectiveTax(0, state.filingStatus, state.city, data, 0);
+      afterTaxIncome = 0;
+    } else if (profile.savingMode === 'auto') {
+      const plan = allocateWaterfall(state, profile, data, gross, spending, debtService);
+      ({ employee, employer, hsaContrib, rothContrib, brokerage, debtExtra, tax } = plan);
+      afterTaxIncome = gross - tax.total;
+      state.k401 += employee + employer;
+      state.hsa += hsaContrib;
+      state.roth += rothContrib;
+      state.investments += brokerage;
+      for (const pmt of plan.debtPayments) {
+        const d = state.debts.find((x) => x.id === pmt.id);
+        if (d) d.balance = Math.max(0, d.balance - pmt.amount);
+      }
+      if (plan.capacity < 0) {
+        deficit = -plan.capacity;
+        drawFunds(state, deficit);
+      }
+      // Saving rate: the share of take-home directed at building net worth
+      // (contributions + accelerated debt payoff) rather than living costs.
+      savingRate = afterTaxIncome > 0 ? Math.max(0, plan.capacity) / afterTaxIncome : 0;
+      netSavings = employee + employer + hsaContrib + rothContrib + brokerage + debtExtra - deficit;
+    } else {
+      const p = state.k401Params;
+      employee = Math.min(p.employeeContribPct * state.userIncome, data.retirement.k401.employeeLimit);
+      employer = Math.min(p.employeeContribPct, p.employerMatchCapPct) * state.userIncome * p.employerMatchRate;
+      const combined = employee + employer;
+      const cap = data.retirement.k401.annualAdditionsLimit;
+      if (combined > cap) employer = Math.max(0, cap - employee);
+      state.k401 += employee + employer;
+      tax = effectiveTax(gross, state.filingStatus, state.city, data, employee);
+      afterTaxIncome = gross - tax.total;
       netSavings = afterTaxIncome - spending - employee - debtService;
-      savingRate = afterTaxIncome > 0 ? netSavings / afterTaxIncome : 0;
-      if (netSavings >= 0) state.investments += netSavings;
-      else drawFunds(state, -netSavings);
+      // Saving rate is defined identically in both modes: the share of take-home
+      // building net worth (contributions + debt payoff), counting the 401k.
+      savingRate = afterTaxIncome > 0 ? Math.max(0, afterTaxIncome - spending - debtService) / afterTaxIncome : 0;
+      if (netSavings >= 0) {
+        state.investments += netSavings;
+        brokerage = netSavings;
+      } else {
+        deficit = -netSavings;
+        drawFunds(state, deficit);
+      }
     }
 
     // ── 7. One-time event cash flows ─────────────────────────────────────
@@ -445,25 +561,28 @@ function runPass(profile, constants, events, retirementAge, withdrawalReal, data
       if (age >= ssStartAge) ssBenefit = ssMonthlyReal * 12 * state.inflFactor;
       withdrawal = (withdrawalReal || 0) * state.inflFactor;
       let needed = Math.max(0, withdrawal - ssBenefit);
-      const fromInv = Math.min(state.investments, needed);
-      state.investments -= fromInv;
-      needed -= fromInv;
-      const fromK = Math.min(state.k401, needed);
-      state.k401 -= fromK;
-      needed -= fromK;
+      // Spend taxable first, then tax-advantaged buckets, then leftover cash.
+      for (const acct of ['investments', 'k401', 'roth', 'hsa']) {
+        if (needed <= 0) break;
+        const from = Math.min(state[acct], needed);
+        state[acct] -= from;
+        needed -= from;
+      }
       if (needed > 0) {
         const fromCash = Math.min(Math.max(0, state.cash), needed);
         state.cash -= fromCash;
         needed -= fromCash;
       }
       if (ssBenefit > withdrawal) state.cash += ssBenefit - withdrawal;
-      if (state.investments + state.k401 <= 0.5) state.depleted = true;
+      if (state.investments + state.k401 + state.roth + state.hsa <= 0.5) state.depleted = true;
     }
 
     // ── 8. Grow balances ──────────────────────────────────────────────────
     const r = state.constants.marketReturn;
     state.investments *= 1 + r;
     state.k401 *= 1 + r;
+    state.roth *= 1 + r;
+    state.hsa *= 1 + r;
     if (state.home) state.home.value *= 1 + state.constants.homeAppreciation;
     for (const a of state.assets) a.value *= 1 + (a.appreciation || 0);
 
@@ -487,7 +606,7 @@ function runPass(profile, constants, events, retirementAge, withdrawalReal, data
       0
     );
     const savingsRaw = state.cash + state.investments;
-    const netWorth = savingsRaw + state.k401 + homeEquity + namedAssetsValue - otherDebt;
+    const netWorth = savingsRaw + state.k401 + state.roth + state.hsa + homeEquity + namedAssetsValue - otherDebt;
     // Tooltip-facing breakdown (§5.2): keep Savings and Assets from showing a
     // misleading negative. A cash overdraft or an underwater home surfaces as
     // Debt instead, so the four parts still sum exactly to net worth.
@@ -509,11 +628,13 @@ function runPass(profile, constants, events, retirementAge, withdrawalReal, data
       ssBenefit,
       withdrawal,
       depleted: state.depleted,
-      portfolio: state.investments + state.k401,
+      portfolio: state.investments + state.k401 + state.roth + state.hsa,
       balances: {
         cash: state.cash,
         investments: state.investments,
         k401: state.k401,
+        roth: state.roth,
+        hsa: state.hsa,
         homeValue,
         homeEquity,
         mortgageBalance,
@@ -524,8 +645,23 @@ function runPass(profile, constants, events, retirementAge, withdrawalReal, data
       components: {
         k401: state.k401,
         savings: Math.max(0, savingsRaw),
+        roth: state.roth,
+        hsa: state.hsa,
         assets: namedAssetsValue + Math.max(0, homeEquity),
         debt: otherDebt + cashDeficit + underwaterEquity,
+      },
+      // Where this year's money went (§6b) — drives the cash-flow view.
+      allocation: {
+        afterTax: afterTaxIncome,
+        livingExpenses: spending,
+        minDebt: debtService,
+        debtExtra,
+        employee401k: employee,
+        employerMatch: employer,
+        hsa: hsaContrib,
+        roth: rothContrib,
+        brokerage: Math.max(0, brokerage),
+        deficit,
       },
       netWorth,
       city: state.city,
@@ -547,7 +683,12 @@ function runPass(profile, constants, events, retirementAge, withdrawalReal, data
 /** Portfolio entering a given age (end-of-prior-year balance) from a pass. */
 function portfolioEntering(pass, profile, age) {
   if (age <= profile.age) {
-    return (profile.investments || 0) + (profile.k401 ? profile.k401.balance || 0 : 0);
+    return (
+      (profile.investments || 0) +
+      (profile.k401 ? profile.k401.balance || 0 : 0) +
+      (profile.rothBalance || 0) +
+      (profile.hsaBalance || 0)
+    );
   }
   const snap = pass.snapshots[age - 1 - profile.age];
   return snap ? snap.portfolio : 0;

@@ -15,8 +15,7 @@ function BreakdownTooltip({ active, payload, mode }) {
   if (!active || !payload?.length) return null;
   const s = payload[0].payload;
   const rows = [
-    ['401k', s.k401, 'text-violet-600'],
-    ['Savings & investments', s.savings, 'text-indigo-600'],
+    ['Investments (401k, IRA, HSA, brokerage)', s.investments, 'text-indigo-600'],
     ['Assets (incl. home equity)', s.assets, 'text-emerald-600'],
     ['Debt', -s.debt, 'text-rose-600'],
   ];
@@ -56,14 +55,16 @@ export default function NetWorthChart({ sim, controls, setControls, profile }) {
     () =>
       sim.snapshots.map((s) => {
         const f = mode === 'real' ? s.inflFactor : 1;
+        const c = s.components;
         return {
           age: s.age,
           year: s.year,
           netWorth: Math.round(s.netWorth / f),
-          k401: Math.round(s.components.k401 / f),
-          savings: Math.round(s.components.savings / f),
-          assets: Math.round(s.components.assets / f),
-          debt: Math.round(s.components.debt / f),
+          // All investable accounts read as one line on a net-worth-over-time chart;
+          // the per-account split lives in the cash-flow view.
+          investments: Math.round((c.k401 + c.savings + c.roth + c.hsa) / f),
+          assets: Math.round(c.assets / f),
+          debt: Math.round(c.debt / f),
           savingRate: s.savingRate,
           retired: s.retired,
           depleted: s.depleted,
