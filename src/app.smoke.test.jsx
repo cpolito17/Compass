@@ -28,6 +28,7 @@ describe('app shell', () => {
   it('mounts with the Trajectory tab and shared profile form', async () => {
     render(<App />);
     expect(screen.getAllByText('Compass').length).toBeGreaterThan(0);
+    expect(screen.getByRole('link', { name: /return to charlie polito's portfolio/i }).getAttribute('href')).toBe('https://charliepolito.com/');
     expect(screen.getByText('Your baseline')).toBeTruthy();
     expect(screen.getByText('Net-worth trajectory')).toBeTruthy();
     expect(screen.getByText('Life events')).toBeTruthy();

@@ -3,6 +3,14 @@
   "name": "trajectory",
 
   "compatibility_date": "2026-06-25",
+  "routes": [
+    { "pattern": "charliepolito.com/compass", "zone_name": "charliepolito.com" },
+    { "pattern": "charliepolito.com/compass/*", "zone_name": "charliepolito.com" },
+    { "pattern": "charliepolito.com/trajectory", "zone_name": "charliepolito.com" },
+    { "pattern": "charliepolito.com/trajectory/*", "zone_name": "charliepolito.com" }
+  ],
+  "workers_dev": true,
+  "preview_urls": false,
 
   "assets": {
 

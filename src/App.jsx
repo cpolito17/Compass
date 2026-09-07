@@ -36,6 +36,15 @@ export default function App() {
       <header className="sticky top-0 z-40 border-b border-slate-200/80 bg-white/80 backdrop-blur">
         <div className="mx-auto flex max-w-6xl items-center justify-between px-4 py-3">
           <div className="flex items-center gap-2">
+            <a
+              href="https://charliepolito.com/"
+              className="group flex items-center gap-2 rounded-lg px-1.5 py-1 text-sm font-medium text-slate-600 transition-colors hover:bg-slate-100 hover:text-slate-900 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-indigo-500"
+              aria-label="Return to Charlie Polito's portfolio"
+              title="Return to portfolio"
+            >
+              <img src={`${import.meta.env.BASE_URL}hd-icon.svg`} alt="" className="h-7 w-7 rounded-md" />
+              <span className="hidden lg:inline">Portfolio</span>
+            </a>
             <div className="flex h-7 w-7 items-center justify-center rounded-lg bg-gradient-to-br from-indigo-500 to-violet-500 text-white">
               <svg viewBox="0 0 32 32" className="h-5 w-5" fill="none" aria-hidden="true">
                 <circle cx="16" cy="16" r="10.5" stroke="currentColor" strokeOpacity="0.55" strokeWidth="1.5" />
@@ -68,7 +77,7 @@ export default function App() {
               </button>
             ))}
           </nav>
-          <div className="whitespace-nowrap text-right text-xs text-slate-400 max-sm:hidden">no accounts · no ads</div>
+          <div className="whitespace-nowrap text-right text-xs text-slate-400 max-md:hidden">no accounts · no ads</div>
         </div>
       </header>
 
